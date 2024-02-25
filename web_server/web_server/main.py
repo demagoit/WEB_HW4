@@ -8,8 +8,8 @@ import logging
 import json
 
 HOST = {
-    'location': 'localhost',
-    # 'location': '127.0.0.1',
+    # 'location': 'localhost',
+    'location': '0.0.0.0',
     'web_port': 3000,
     'form_port': 5000
 }
