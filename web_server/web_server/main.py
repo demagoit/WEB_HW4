@@ -6,6 +6,7 @@ import pathlib
 import socket
 import logging
 import json
+import datetime
 
 HOST = {
     # 'location': 'localhost',
@@ -19,6 +20,10 @@ RES = {
     'json_folder': 'front-init/storage',
     'json_file': 'data.json'
 }
+
+# storage for form messages
+form_data_log = None
+
 
 logger = logging.getLogger('AD')
 logger.setLevel(logging.DEBUG)
@@ -108,22 +113,30 @@ def HTTP_server(host, port, handler_class=HttpHandler):
     http.serve_forever()
     
 def save_json(data: dict, filename: str = RES.get('json_file'), folder: str = RES.get('json_folder')):
+    global form_data_log
+    form_data_log[str(datetime.datetime.now())] = data
+
     folder = pathlib.Path.cwd().joinpath(folder)
     if not pathlib.Path.exists(folder) or not pathlib.Path.is_dir(folder):
         pathlib.Path.mkdir(folder)
-
     target = pathlib.Path.joinpath(folder, filename)
-    if not pathlib.Path.exists(target):
-        with open(target, 'w') as fh:
-            json.dump(data, fh, indent=4)
-            fh.write('\n')
-    else:
-        with open(target, 'a') as fh:
-            json.dump(data, fh, indent=4)
-            fh.write('\n')
 
-    
+    with open(target, 'w') as fh:
+        json.dump(form_data_log, fh, indent=4)
+
+def read_json(filename: str = RES.get('json_file'), folder: str = RES.get('json_folder')):
+    folder = pathlib.Path.cwd().joinpath(folder)
+    target = pathlib.Path.joinpath(folder, filename)
+    if pathlib.Path.exists(target):
+        with open(target, 'r') as fh:
+            data = json.load(fh)
+    else:
+        data = {}
+    return data
+
 if __name__ == '__main__':
+    form_data_log = read_json(filename=RES.get('json_file'), folder=RES.get('json_folder'))
+
     form_server = Thread(target=UDP_socket_server, args=(HOST.get('location'), HOST.get('form_port')))
     web_server = Thread(target=HTTP_server, args=(HOST.get('location'), HOST.get('web_port'), HttpHandler))
     
