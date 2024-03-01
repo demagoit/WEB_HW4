@@ -29,7 +29,7 @@ logger = logging.getLogger('AD')
 logger.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
-format = logging.Formatter('PID=%(process)d - TID=%(thread)d - %(name)s - %(funcName)s - %(message)s')
+format = logging.Formatter('%(message)s - PID=%(process)d - TID=%(thread)d - %(name)s - %(funcName)s')
 ch.setFormatter(format)
 logger.addHandler(ch)
 
@@ -74,7 +74,7 @@ class HttpHandler(BaseHTTPRequestHandler):
 
 
 def UDP_socket_server(host = None, port = None):
-    logger.debug('UDP_server up')
+    logger.debug(f'{host}:{port} - UDP_server up')
     if not host:
         host = HOST.get('location')
     if not port:
@@ -87,13 +87,13 @@ def UDP_socket_server(host = None, port = None):
             data_parse = urllib.parse.unquote_plus(data.decode())
             data_dict = {key: value for key, value in [
                 el.split('=') for el in data_parse.split('&')]}
-            logger.debug(f"received {data_dict} from {adr}")
+            logger.debug(f"{host}:{port} - received {data_dict} from {adr}")
             save_json(data=data_dict, filename=RES.get('json_file'), folder=RES.get('json_folder'))
-            logger.debug('UDP_server alive...')
+            logger.debug(f'{host}:{port} - UDP_server alive...')
 
         
 def UDP_socket_client(host, port, msg: bin = b"Hello!"):
-    logger.debug('UDP_client up...')
+    logger.debug(f'{host}:{port} - UDP_client up...')
     if not host:
         host = HOST.get('location')
     if not port:
@@ -101,15 +101,15 @@ def UDP_socket_client(host, port, msg: bin = b"Hello!"):
 
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         server = (host, port)
-        logger.debug(f"sending {msg.decode()} to {server}")
+        logger.debug(f"{host}:{port} - sending {msg.decode()} to {server}")
         sock.sendto(msg, server)
-    logger.debug('UDP_client down')
+    logger.debug(f'{host}:{port} - UDP_client down')
 
 def HTTP_server(host, port, handler_class=HttpHandler):
     server_address = (host, port)
     http = HTTPServer(server_address, handler_class)
 
-    logger.debug('web_server up...')
+    logger.debug(f'{host}:{port} - web_server up...')
     http.serve_forever()
     
 def save_json(data: dict, filename: str = RES.get('json_file'), folder: str = RES.get('json_folder')):
